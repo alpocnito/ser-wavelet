@@ -27,7 +27,11 @@ def test(model: nn.Module, dataloader: DataLoader, device: torch.device) -> Dict
     targets = []
 
     with torch.inference_mode():
-        for batch in dataloader:
+        for i, batch in enumerate(dataloader):
+            print(batch["features"])
+            print(batch["labels"])
+            exit(0)
+
             data = batch["features"].to(device)
             target = batch["labels"].to(device)
 
@@ -48,6 +52,9 @@ def test(model: nn.Module, dataloader: DataLoader, device: torch.device) -> Dict
         y_true=targets, y_score=predictions, average="macro", multi_class="ovr"
     )
 
+    # print(targets)
+    # print(predictions)
+
     predictions = (
         torch.Tensor(predictions).argmax(dim=-1, keepdim=True).to(dtype=torch.int)
     )
@@ -55,6 +62,9 @@ def test(model: nn.Module, dataloader: DataLoader, device: torch.device) -> Dict
 
     targets = torch.Tensor(targets).argmax(dim=-1, keepdim=True).to(dtype=torch.int)
     targets = targets.numpy().tolist()
+
+    # print(targets)
+    # print(predictions)
 
     f1_score = classification_report(
         y_true=targets,
@@ -122,7 +132,7 @@ if __name__ == "__main__":
             )
 
         device = (
-            torch.device("cuda") if params["model"]["use_gpu"] else torch.device("cpu")
+            torch.device("cuda") if params["model"]["use_gpu"] and torch.cuda.is_available() else torch.device("cpu")
         )
 
         output_path = params["model"]["output_path"]
@@ -142,11 +152,11 @@ if __name__ == "__main__":
                         path=os.path.join(feat_path, f"fold{fold}"),
                         name="X_valid.pth",
                     )
-
                     y_test = read_feature(
                         path=os.path.join(feat_path, f"fold{fold}"),
                         name="y_valid.pth",
                     )
+                    print(X_test, y_test)
 
                 # creating the test dataloader
                 test_dataloader = create_dataloader(

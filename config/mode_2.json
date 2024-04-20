@@ -1,5 +1,5 @@
 {
-    "input_path": "/media/greca/HD/Datasets/PROPOR 2022",
+    "input_path": "/opt/notebooks/ser-wavelet/data/coraa",
     "output_path": "./features",
     "sample_rate": 8000,
     "dataset": "coraa",

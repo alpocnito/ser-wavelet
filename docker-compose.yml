@@ -1,0 +1,19 @@
+version: "3.0"
+
+services:
+  conda:
+    build: .
+    image: conda
+    container_name: conda
+    ports:
+      - 8888:8888
+    volumes:
+      - ./:/opt/notebooks/ser-wavelet
+    networks:
+      - my-network
+  
+volumes:
+  db-data:
+
+networks:
+  my-network:

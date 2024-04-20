@@ -1,5 +1,5 @@
 {
-    "input_path": "/media/greca/HD/Datasets/RAVDESS/",
+    "input_path": "/opt/notebooks/ser-wavelet/data/ravdess",
     "output_path": "./features",
     "sample_rate": 8000,
     "dataset": "ravdess",
@@ -45,3 +45,4 @@
     "overwrite": false,
     "to_mono": true
 }
+

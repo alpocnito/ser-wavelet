@@ -204,7 +204,7 @@ def training_pipeline(
     logs = pd.DataFrame()
 
     feat_path = os.path.join(params["output_path"], params["dataset"])
-
+    print(feat_path)
     # reading training audio features (CORAA only)
     if dataset == "coraa":
         X_test = read_feature(
@@ -223,7 +223,7 @@ def training_pipeline(
 
         # creating and defining the model
         device = torch.device(
-            "cuda" if torch.cuda.is_available and model_config["use_gpu"] else "cpu"
+            "cuda" if torch.cuda.is_available() and model_config["use_gpu"] else "cpu"
         )
 
         model = choose_model(
