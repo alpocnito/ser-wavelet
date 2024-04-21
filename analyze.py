@@ -30,7 +30,7 @@ def num_to_str(num: str) -> str:
     return LABELS[num]
 
 
-def analyse():
+def analyze(indata):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-w", required=True, help="wave file path."
