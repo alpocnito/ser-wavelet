@@ -186,7 +186,7 @@ def read_audio(
         Tuple[torch.Tensor, int]: the audio waveform and the sample rate.
     """
     audio, sr = torchaudio.load(filepath=path)
-
+    print(f'{audio = }')
     # resampling the audio to that specific sample rate (if necessary)
     if sample_rate != sr:
         audio = resample_audio(audio=audio, sample_rate=sr, new_sample_rate=sample_rate)
@@ -237,6 +237,7 @@ def processing(
     for label, file_path in zip(df["label"], df["file"]):
         # reading the audio
         audio, sr = read_audio(path=file_path, to_mono=to_mono, sample_rate=sample_rate)
+
 
         assert sr == sample_rate
 

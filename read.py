@@ -1,23 +1,24 @@
 import time
 import os
+import torch
 import sounddevice as sd
 import influxdb_client
 import numpy as np
-import analyze
+from analyze import analyze
 
 duration_sec = 2000
 
 # Influxdb stuff
 # WARNING: token should be taken from os environment variables, do not leave it as plain text here
 org = "mipt"
-token='OyI0ggaJUTvwKgB_F1SEdlF35H01IwBxmmSJl1eyIMEu6QT-LIx-3Hmw4QrvbFTB1ocj3zthyCycTsCb20vv1A=='
 url="http://influxdb:8086"
 bucket = "bucket1"
 
 client = influxdb_client.InfluxDBClient(
     url=url,
-    token=token,
-    org=org
+    org=org,
+    username='admin',
+    password='password',
 )
 
 if not client.ping():
@@ -25,31 +26,31 @@ if not client.ping():
     print(client.health())
     exit(1)
 
+read_size_sec = 4
+sec_capacity = 44100
 
 def read_data():
-    read_buf = []
-    start = time.time()
-    left_data = client.query_api().query_stream(
-        f'from(bucket:"{bucket}") |> range(start: -1s) '
+    # start = time.time()
+    left_data = client.query_api().query_data_frame(
+        f'from(bucket:"{bucket}") |> range(start: -4s, stop: -1s) '
         f'|> filter(fn: (r) => r["_measurement"] == "a") '
         f'|> filter(fn: (r) => r["_field"] == "l") '
-        f'|> map(fn: (r) => ({{r with _value: r._value * 20.0}}))'
+        f'|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value") '
+        f'|> keep(columns: ["l"])'
     )
-    for point in left_data:
-        # print(point.get_time().timestamp()*1_000_000_000)
-        read_buf.append([point.get_value()])
+    # print('request:', time.time() - start)
+    # start = time.time()
+    read_buf = left_data['l'].values.tolist()
+    # print('proc:', time.time() - start)
+    return read_buf
 
-    if len(read_buf) != 44100:
-        add_len = 44100 - len(read_buf)
-        if add_len > 0:
-            print(f'{add_len = }')
-            time.sleep(1)
-        read_buf = [*([[0]] * add_len), *read_buf]
-
-    print('read proc:', time.time() - start)
-    return np.array(read_buf[:44100])
-
-
-print(analyze.analyze(read_data()))
-
-
+while 1:
+    ton = analyze(torch.FloatTensor([read_data()]))
+    os.system('clear')
+    for k, v in ton.items():
+        print(f'{k:<10}: ', end ='')
+        i = 0
+        while v > i:
+            print('=', end ='')
+            i += 1
+        print()

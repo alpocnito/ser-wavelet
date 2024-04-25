@@ -10,18 +10,21 @@ RUN apt update && apt install -y    \
 WORKDIR /ser-wavelet
 
 COPY ./requirements ./requirements
-COPY ./data ./data
-COPY ./src ./src
-COPY ./checkpoints2 ./checkpoints2
-
 
 # ser-wavelet stuff
 RUN pip install --upgrade pip
 RUN pip install -r requirements/pip.txt
 
 # reader stuff
-RUN pip install influxdb_client
+RUN pip install influxdb_client jupyter
+
+
 COPY ./analyze.py ./analyze.py
 COPY ./read.py ./read.py
+COPY ./data ./data
+COPY ./src ./src
+COPY ./checkpoints2 ./checkpoints2
 
-CMD ["python3", "read.py"]
+CMD jupyter notebook \
+    --notebook-dir=/ser-wavelet --ip='*' --port=8888 \
+    --no-browser --allow-root --NotebookApp.token=''

@@ -11,7 +11,8 @@ from src.utils import read_feature, choose_model
 from src.dataset import create_dataloader
 from typing import Dict
 from src.utils import labels_mapping
-import src.processing as processing
+from src.processing import processing
+
 
 LABELS = {
     "01": "neutral",
@@ -30,6 +31,14 @@ def num_to_str(num: str) -> str:
 
 
 def analyze(indata):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-w", required=True, help="wave file path."
+    )
+    args = parser.parse_args()
+    file = args.w
+    wav_file = os.path.basename(file)
+
     # reading the parameters configuration file
     params = json.load(open('config/mode_1.json', "r"))
     feat_config = params["feature"]
@@ -50,31 +59,36 @@ def analyze(indata):
     )
 
     fold = 4
-    sr  = 44100
-    sample_rate = params["sample_rate"]
+
+    df = pd.DataFrame()
+    label = "neutral"
+
+    row = pd.DataFrame(
+        {
+            "file": [file],
+            "label": [label],
+            "wav_file": [wav_file],
+        }
+    )
+
+
+    df = pd.concat([df, row], axis=0)
+
+
+    train_df = df.reset_index(drop=True)
+
+
+    train_df = labels_mapping(df=train_df, dataset="ravdess")
+
+    print(torch.tensor([1, 2, 3]))
+
     max_samples = 6 * int(params["sample_rate"])
-    audio = indata
+    X_train, y_train = processing(
+        df=train_df, to_mono=params["to_mono"],
+        sample_rate=params["sample_rate"], max_samples=max_samples
+    )
 
-    if sample_rate != sr:
-        audio = processing.resample_audio(audio=audio, sample_rate=sr, new_sample_rate=sample_rate)
-        sr = sample_rate
-
-    data = processing.pad_data(features=[audio], max_frames=max_samples)
-
-    data = torch.cat(data, 0).to(dtype=torch.float32)
-    data = data.unsqueeze(1)
-    labels = torch.as_tensor([0], dtype=torch.long)
-
-    # print(indata)
-    # print(len(indata))
-    # exit(1)
-
-    # X_train, y_train = processing.processing(
-    #     df=train_df, to_mono=params["to_mono"],
-    #     sample_rate=params["sample_rate"], max_samples=max_samples
-    # )
-    X_train = data
-    y_train = labels
+    print(X_train, y_train)
 
     # creating the test dataloader
     dataloader = create_dataloader(
@@ -121,4 +135,4 @@ def analyze(indata):
     return ret
 
 if __name__ == "__main__":
-    print(analyze(torch.FloatTensor([[1, 0, 1]])))
+    print(analyze(None))
